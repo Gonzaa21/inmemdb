@@ -8,7 +8,7 @@ An in-memory database engine written in Rust, inspired by Redis.
 ## Use
 1. Clone & compile
 ```bash
-    git clone https://github.com/tu-usuario/inmemdb.git
+    git clone https://github.com/Gonzaa21/inmemdb.git
     cd inmemdb
     cargo build --release
 ```
