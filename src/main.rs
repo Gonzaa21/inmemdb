@@ -8,8 +8,9 @@ use tokio::sync::RwLock;
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    let cmd = command::parse_command("SET key value");
-    print!("{:?}",cmd);
     let db = Arc::new(RwLock::new(Database::new()));
     server::run(db).await.unwrap();
+    // debug
+    // let cmd = command::parse_command("SET key value");
+    // print!("{:?}",cmd);
 }
