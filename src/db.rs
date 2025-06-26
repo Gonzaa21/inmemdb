@@ -21,4 +21,8 @@ impl Database {
     pub fn del(&mut self, key: &str) -> bool {
         self.store.remove(key).is_some()
     } // command DEL
+
+    pub fn exists(&mut self, key: &str) -> bool {
+        self.store.contains_key(key)
+    } // command EXISTS
 }

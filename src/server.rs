@@ -53,6 +53,15 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                                     "-ERR key not found\r\n".to_string()
                                 }
                             }
+
+                            Command::Exists(key) => {
+                                let mut db = db.write().await;
+                                if db.exists(&key) {
+                                    ":1\r\n".to_string()
+                                } else {
+                                    ":0\r\n".to_string()
+                                }
+                            }
                         };
 
                         writer.write_all(response.as_bytes()).await.unwrap();

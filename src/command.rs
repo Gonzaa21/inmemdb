@@ -5,6 +5,7 @@ pub enum Command {
     Get(String),
     Set(String, String),
     Del(String),
+    Exists(String),
 }
 
 // parse command
@@ -30,13 +31,16 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
     // case sensitive and use validations
     if cmd.eq_ignore_ascii_case("SET") {
         require_exact_args("SET", &tokens, 3)?;
-        return Ok(Command::Set(tokens[1].into(), tokens[2].into()));
+        return Ok(Command::Set(tokens[1].to_lowercase().into(), tokens[2].into()));
     } else if cmd.eq_ignore_ascii_case("GET") {
         require_exact_args("GET", &tokens, 2)?;
-        return Ok(Command::Get(tokens[1].into()));
+        return Ok(Command::Get(tokens[1].to_lowercase().into()));
     } else if cmd.eq_ignore_ascii_case("DEL") {
         require_exact_args("DEL", &tokens, 2)?;
-        return Ok(Command::Del(tokens[1].into()));
+        return Ok(Command::Del(tokens[1].to_lowercase().into()));
+    } else if cmd.eq_ignore_ascii_case("EXISTS") {
+        require_exact_args("EXISTS", &tokens, 2)?;
+        return Ok(Command::Exists(tokens[1].to_lowercase().into()));
     } else {
         return Err(CommandError::UnknownCommand(cmd.to_string()));
     }
