@@ -28,41 +28,42 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
 
                 if bytes_read == 0 {break} // if not have nothing => cancel
 
-                let command = parse_command(line.trim()); // parse commands to String
+                match parse_command(line.trim()) {
+                    Ok(command) => {
+                        let response = match command {
+                            Command::Set(key, value) => {
+                                let mut db = db.write().await;
+                                db.set(key, value);
+                                "+OK\r\n".to_string()
+                            }
+                        
+                            Command::Get(key) => {
+                                let db = db.read().await;
+                                match db.get(&key) {
+                                    Some(value) => format!("${}\r\n", value),
+                                    None => "$nil\r\n".to_string(),
+                                }
+                            }
+                        
+                            Command::Del(key) => {
+                                let mut db = db.write().await;
+                                if db.del(&key) {
+                                    "+OK\r\n".to_string()
+                                } else {
+                                    "-ERR key not found\r\n".to_string()
+                                }
+                            }
+                        };
 
-                let response = match command {
-                    Command::Set(key, value) => {
-                        let mut db = db.write().await;
-                        db.set(key, value);
-                        "+OK\r\n".to_string()
+                        writer.write_all(response.as_bytes()).await.unwrap();
                     }
-
-                    Command::Get(key) => {
-                        let db = db.read().await;
-                        match db.get(&key) {
-                            Some(value) => format!("${}\r\n", value),
-                            None => "$nil\r\n".to_string(),
-                        }
+                    Err(e) => { // print error in console and continue runing
+                        let err_msg = format!("-ERR {}\r\n", e);
+                        writer.write_all(err_msg.as_bytes()).await.unwrap();
+                        continue;
                     }
-
-                    Command::Del(key) => {
-                        let mut db = db.write().await;
-                        if db.del(&key) {
-                            "+OK\r\n".to_string()
-                        } else {
-                            "-ERR key not found\r\n".to_string()
-                        }
-                    }
-
-                    Command::CommandError(msg) => format!("-ERR {}\r\n", msg),
-                };
-
-                match writer.write_all(response.as_bytes()).await {
-                    Ok(n) => n,
-                    Err(_) => break
                 }
             }
-
         });
     }
 }

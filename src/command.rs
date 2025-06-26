@@ -1,29 +1,43 @@
 // #[derive(Debug)]
+use crate::error::CommandError;
 // enum
 pub enum Command {
     Get(String),
     Set(String, String),
     Del(String),
-    CommandError(String)
 }
 
 // parse command
-pub fn parse_command(input: &str) -> Command {
-    let tokens: Vec<&str> = input.trim().split_whitespace().collect();
+pub fn parse_command(input: &str) -> Result<Command, CommandError> {
+    let tokens: Vec<&str> = input.trim().split_whitespace().collect(); // create vec whithin whitespaces
 
+    // if token is empty
     if tokens.is_empty() {
-        return Command::CommandError("Empty command".to_string());
+        return Err(CommandError::ParseError("Empty command".into()));
     }
 
+    // for validate if miss arguments
+    fn require_args(cmd: &str, tokens: &[&str], expected: usize) -> Result<(), CommandError> {
+        if tokens.len() != expected {
+            Err(CommandError::MissingCommand(cmd.to_string()))
+        } else {
+            Ok(())
+        }
+    }
+
+    // validating if it have more arguments
     if tokens.len() >= 3 && tokens[0].eq_ignore_ascii_case("SET") {
-        return Command::Set(tokens[1].to_string().to_lowercase(), tokens[2].to_string());
+        require_args("SET", &tokens, 3)?;
+        return Ok(Command::Set(tokens[1].to_string().to_lowercase(), tokens[2].to_string()));
     }
     else if tokens.len() >= 2 && tokens[0].eq_ignore_ascii_case("GET") {
-        return Command::Get(tokens[1].to_string().to_lowercase());
+        require_args("GET", &tokens, 2)?;
+        return Ok(Command::Get(tokens[1].to_string().to_lowercase()));
     }
     else if tokens.len() >= 2 && tokens[0].eq_ignore_ascii_case("DEL") {
-        return Command::Del(tokens[1].to_string().to_lowercase());
+        require_args("DEL", &tokens, 2)?;
+        return Ok(Command::Del(tokens[1].to_string().to_lowercase()));
     } else {
-        Command::CommandError(format!("Unknown command: '{}'", tokens[0]))
+        Err(CommandError::UnknownCommand(tokens[0].to_string()))
     }
 }

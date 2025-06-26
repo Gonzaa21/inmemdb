@@ -1,6 +1,7 @@
 mod db;
 mod server;
 mod command;
+mod error;
 use db::Database;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -14,3 +15,8 @@ async fn main() {
     // let cmd = command::parse_command("SET key value");
     // print!("{:?}",cmd);
 }
+
+// // Tareas:
+// INC - FLUSH - PING - ECHO - SAVE
+// sistema thiserror
+// auth y establecer passwords
