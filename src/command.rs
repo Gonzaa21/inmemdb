@@ -16,8 +16,8 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
         return Err(CommandError::ParseError("Empty command".into()));
     }
 
-    // for validate if miss arguments
-    fn require_args(cmd: &str, tokens: &[&str], expected: usize) -> Result<(), CommandError> {
+    // validate if have exact arguments 
+    fn require_exact_args(cmd: &str, tokens: &[&str], expected: usize) -> Result<(), CommandError> {
         if tokens.len() != expected {
             Err(CommandError::MissingCommand(cmd.to_string()))
         } else {
@@ -25,19 +25,19 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
         }
     }
 
-    // validating if it have more arguments
-    if tokens.len() >= 3 && tokens[0].eq_ignore_ascii_case("SET") {
-        require_args("SET", &tokens, 3)?;
-        return Ok(Command::Set(tokens[1].to_string().to_lowercase(), tokens[2].to_string()));
-    }
-    else if tokens.len() >= 2 && tokens[0].eq_ignore_ascii_case("GET") {
-        require_args("GET", &tokens, 2)?;
-        return Ok(Command::Get(tokens[1].to_string().to_lowercase()));
-    }
-    else if tokens.len() >= 2 && tokens[0].eq_ignore_ascii_case("DEL") {
-        require_args("DEL", &tokens, 2)?;
-        return Ok(Command::Del(tokens[1].to_string().to_lowercase()));
+    let cmd = tokens[0];
+
+    // case sensitive and use validations
+    if cmd.eq_ignore_ascii_case("SET") {
+        require_exact_args("SET", &tokens, 3)?;
+        return Ok(Command::Set(tokens[1].into(), tokens[2].into()));
+    } else if cmd.eq_ignore_ascii_case("GET") {
+        require_exact_args("GET", &tokens, 2)?;
+        return Ok(Command::Get(tokens[1].into()));
+    } else if cmd.eq_ignore_ascii_case("DEL") {
+        require_exact_args("DEL", &tokens, 2)?;
+        return Ok(Command::Del(tokens[1].into()));
     } else {
-        Err(CommandError::UnknownCommand(tokens[0].to_string()))
+        return Err(CommandError::UnknownCommand(cmd.to_string()));
     }
 }
