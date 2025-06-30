@@ -6,11 +6,14 @@ pub enum Command {
     Set(String, String),
     Del(String),
     Exists(String),
+    Incr(String),
 }
 
 // parse command
 pub fn parse_command(input: &str) -> Result<Command, CommandError> {
-    let tokens: Vec<&str> = input.trim().split_whitespace().collect(); // create vec whithin whitespaces
+    // create vec whithin whitespaces/suffixes
+    let cleaned = input.trim_end_matches(|c| c == '\r' || c == '\n');
+    let tokens: Vec<&str> = cleaned.split_whitespace().collect();
 
     // if token is empty
     if tokens.is_empty() {
@@ -41,6 +44,9 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
     } else if cmd.eq_ignore_ascii_case("EXISTS") {
         require_exact_args("EXISTS", &tokens, 2)?;
         return Ok(Command::Exists(tokens[1].to_lowercase().into()));
+    } else if cmd.eq_ignore_ascii_case("INCR") {
+        require_exact_args("INCR", &tokens, 2)?;
+        return Ok(Command::Incr(tokens[1].to_lowercase().into()));
     } else {
         return Err(CommandError::UnknownCommand(cmd.to_string()));
     }

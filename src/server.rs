@@ -40,7 +40,7 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                             Command::Get(key) => {
                                 let db = db.read().await;
                                 match db.get(&key) {
-                                    Some(value) => format!("${}\r\n", value),
+                                    Some(value) => format!("${}\r\n{}\r\n", value.len(), value),
                                     None => "$nil\r\n".to_string(),
                                 }
                             }
@@ -61,6 +61,22 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                                 } else {
                                     ":0\r\n".to_string()
                                 }
+                            }
+
+                            Command::Incr(key) => {
+                                let mut db = db.write().await;
+                                let new_val = match db.get(&key) {
+                                    Some(s) => match s.parse::<i64>() {
+                                        Ok(n) => n + 1,
+                                        Err(_) => {
+                                            writer.write_all(b"-ERR value is not an integer\r\n").await.unwrap();
+                                            continue;
+                                        }
+                                    },
+                                    None => 1,
+                                };
+                                db.set(key, new_val.to_string());
+                                format!(":{}\r\n", new_val)
                             }
                         };
 
