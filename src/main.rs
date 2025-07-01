@@ -17,6 +17,6 @@ async fn main() {
 }
 
 // // Tareas:
-// INC - FLUSH - PING - ECHO - SAVE
+// PING - ECHO - SAVE
 // sistema thiserror
 // auth y establecer passwords

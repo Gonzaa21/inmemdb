@@ -7,6 +7,7 @@ pub enum Command {
     Del(String),
     Exists(String),
     Incr(String),
+    Flush,
 }
 
 // parse command
@@ -50,6 +51,9 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
     } else if cmd.eq_ignore_ascii_case("INCR") {
         require_exact_args("INCR", &tokens, 2)?;
         return Ok(Command::Incr(tokens[1].to_lowercase().into()));
+    } else if cmd.eq_ignore_ascii_case("FLUSH") {
+        require_exact_args("FLUSH", &tokens, 1)?;
+        return Ok(Command::Flush);
     } else {
         return Err(CommandError::UnknownCommand(cmd.to_string()));
     }

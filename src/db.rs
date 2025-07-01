@@ -25,4 +25,8 @@ impl Database {
     pub fn exists(&mut self, key: &str) -> bool {
         self.store.contains_key(key)
     } // command EXISTS
+
+    pub fn flush(&mut self) {
+        self.store.clear();
+    } // command FLUSH
 }

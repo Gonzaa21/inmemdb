@@ -78,6 +78,13 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                                 db.set(key, new_val.to_string());
                                 format!(":{}\r\n", new_val)
                             }
+
+                            Command::Flush => {
+                                let mut db = db.write().await;
+                                db.flush();
+                                "+OK\r\n".to_string()
+                            }
+
                         };
 
                         writer.write_all(response.as_bytes()).await.unwrap();
