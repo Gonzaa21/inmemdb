@@ -99,6 +99,14 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                                 }
                             }
 
+                            Command::Ping => {
+                                "+PONG\r\n".to_string()
+                            }
+
+                            Command::Echo(key) => {
+                                format!("${}\r\n", key)
+                            }
+
                         };
 
                         writer.write_all(response.as_bytes()).await.unwrap();

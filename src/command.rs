@@ -9,6 +9,8 @@ pub enum Command {
     Incr(String),
     Flush,
     Scan,
+    Ping,
+    Echo(String),
 }
 
 // parse command
@@ -58,6 +60,12 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
     } else if cmd.eq_ignore_ascii_case("SCAN") {
         require_exact_args("SCAN", &tokens, 1)?;
         return Ok(Command::Scan);
+    } else if cmd.eq_ignore_ascii_case("PING") {
+        require_exact_args("PING", &tokens, 1)?;
+        return Ok(Command::Ping);
+    } else if cmd.eq_ignore_ascii_case("ECHO") {
+        require_exact_args("ECHO", &tokens, 2)?;
+        return Ok(Command::Echo(tokens[1].to_lowercase().into()));
     } else {
         return Err(CommandError::UnknownCommand(cmd.to_string()));
     }
