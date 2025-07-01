@@ -85,6 +85,20 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                                 "+OK\r\n".to_string()
                             }
 
+                            Command::Scan => {
+                                let db = db.read().await;
+                                let keys = db.scan();
+                                if keys.is_empty() {
+                                    "*0\r\n".to_string()
+                                } else {
+                                    let mut response = format!("*{}\r\n", keys.len());
+                                    for k in keys {
+                                        response.push_str(&format!("${}\r\n{}\r\n", k.len(), k));
+                                    }
+                                    response
+                                }
+                            }
+
                         };
 
                         writer.write_all(response.as_bytes()).await.unwrap();

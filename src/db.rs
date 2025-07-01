@@ -29,4 +29,8 @@ impl Database {
     pub fn flush(&mut self) {
         self.store.clear();
     } // command FLUSH
+
+    pub fn scan(&self) -> Vec<String> {
+        self.store.keys().cloned().collect() // clone iterator with all keys and transform to a collection
+    } // command SCAN
 }
