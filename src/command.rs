@@ -22,8 +22,11 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
 
     // validate if have exact arguments 
     fn require_exact_args(cmd: &str, tokens: &[&str], expected: usize) -> Result<(), CommandError> {
-        if tokens.len() != expected {
+        if tokens.len() < expected {
             Err(CommandError::MissingCommand(cmd.to_string()))
+        } 
+        else if tokens.len() > expected {
+            Err(CommandError::InvalidCommand(cmd.to_string()))
         } else {
             Ok(())
         }
