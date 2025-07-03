@@ -107,6 +107,13 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                                 format!("${}\r\n", key)
                             }
 
+                            Command::Save => {
+                                let db = db.read().await;
+                                match db.save() {
+                                    Ok(()) => "+OK\r\n".to_string(),
+                                    Err(_) => "-ERR Could not save\r\n".to_string()
+                                }
+                            }
                         };
 
                         writer.write_all(response.as_bytes()).await.unwrap();

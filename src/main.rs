@@ -17,6 +17,4 @@ async fn main() {
 }
 
 // // Tareas:
-// SAVE
-// sistema thiserror
 // auth y establecer passwords

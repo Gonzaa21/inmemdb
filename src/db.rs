@@ -1,6 +1,9 @@
 use std::collections::HashMap;
-
+use std::fs::File;
+use std::io;
+use serde::{Serialize, Deserialize};
 // base struct
+#[derive(Serialize, Deserialize)]
 pub struct Database {
     store: HashMap<String, String>,
 }
@@ -33,4 +36,13 @@ impl Database {
     pub fn scan(&self) -> Vec<String> {
         self.store.keys().cloned().collect() // clone iterator with all keys and transform to a collection
     } // command SCAN
+
+    pub fn save(&self) -> io::Result<()> {
+        let file = File::create("saves/dump.json")?;
+        let data = &self.store;
+
+        serde_json::to_writer_pretty(file, &data)?;
+        Ok(())
+
+    } // command SAVE
 }
