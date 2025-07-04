@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::db::Database;
 use crate::command::{parse_command, Command};
 use std::sync::Arc;
@@ -5,19 +6,23 @@ use tokio::net::TcpListener;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::sync::RwLock;
 use std::io::Result;
+use std::net::SocketAddr;
+use std::collections::HashMap;
+use std::sync::Mutex;
 
-pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
+pub async fn run(db: Arc<RwLock<Database>>, _password: String) -> Result<()> {
     let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    let auth_map = Arc::new(Mutex::new(HashMap::<SocketAddr, bool>::new()));
     loop {
         let (socket, addr) = listener.accept().await?; // accept TCP conection
         let db = db.clone(); // clone Arc
+        let auth_map = auth_map.clone();
 
         println!("Client connected: {}", addr); // debug addres
 
         tokio::spawn(async move {
             let (reader, mut writer) = socket.into_split();
             let mut reader = BufReader::new(reader);
-
             let mut line = String::new();
             loop {
                 line.clear(); // clean buffer
@@ -28,8 +33,17 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
 
                 if bytes_read == 0 {break} // if not have nothing => cancel
 
+                let is_authed = {
+                    let map = auth_map.lock().unwrap(); // block access
+                    *map.get(&addr).unwrap_or(&false) // verify client state
+                };
+
                 match parse_command(line.trim()) {
                     Ok(command) => {
+                        if !is_authed && !matches!(command, Command::Auth(_)) {
+                                writer.write_all(b"-NOAUTH Authentication required\r\n").await.unwrap();
+                                continue;
+                        }
                         let response = match command {
                             Command::Set(key, value) => {
                                 let mut db = db.write().await;
@@ -112,6 +126,19 @@ pub async fn run(db: Arc<RwLock<Database>>) -> Result<()> {
                                 match db.save() {
                                     Ok(()) => "+OK\r\n".to_string(),
                                     Err(_) => "-ERR Could not save\r\n".to_string()
+                                }
+                            }
+
+                            Command::Auth(password) => {
+                                let config = Config::load_file("config.json").expect("Failed to load config");
+                                let config_password = config.password;
+                                if password == config_password {
+                                    // update map with the auth
+                                    let mut map = auth_map.lock().unwrap();
+                                    map.insert(addr, true);
+                                    "+OK\r\n".to_string()
+                                } else {
+                                    "-ERR invalid password\r\n".to_string()
                                 }
                             }
                         };

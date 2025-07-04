@@ -12,6 +12,7 @@ pub enum Command {
     Ping,
     Echo(String),
     Save,
+    Auth(String)
 }
 
 // parse command
@@ -70,6 +71,9 @@ pub fn parse_command(input: &str) -> Result<Command, CommandError> {
     } else if cmd.eq_ignore_ascii_case("SAVE") {
         require_exact_args("SAVE", &tokens, 1)?;
         return Ok(Command::Save);
+    } else if cmd.eq_ignore_ascii_case("AUTH") {
+        require_exact_args("AUTH", &tokens, 2)?;
+        return Ok(Command::Auth(tokens[1].to_lowercase().into()));
     } else {
         return Err(CommandError::UnknownCommand(cmd.to_string()));
     }
